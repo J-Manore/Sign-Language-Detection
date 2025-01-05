@@ -1,2 +1,15 @@
 # Sign-Language-Detection
-A Python-based tool that uses OpenCV and TensorFlow to recognize ASL gestures and convert them into text, aiding communication for people with hearing impairments.
+
+Description:
+Python-based application designed to recognize American Sign Language (ASL) gestures using OpenCV and TensorFlow. The system converts these gestures into text, aiming to bridge communication gaps for people with hearing impairments.
+
+Technologies Used:
+Python
+OpenCV
+TensorFlow
+HTML, CSS
+
+Features:
+Real-time ASL gesture recognition.
+Converts ASL gestures into readable text.
+Built using machine learning techniques for accurate gesture recognition.
