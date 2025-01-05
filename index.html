@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Gesture Recognition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Roboto', sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            color: #f0f4f8; /* Light text color */
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            position: relative; /* For footer positioning */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #00aaff; /* Bluish color */
+        }
+
+        .toggle-button {
+            position: absolute; /* Positioning the button in the top right corner */
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff5733; /* Coral */
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-button:hover {
+            background-color: #c0392b; /* Darker coral */
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px; /* Limit width */
+            margin: 20px 0; /* Space around container */
+        }
+
+        video {
+            border: 2px solid #00aaff; /* Bluish border to match title */
+            border-radius: 10px;
+            margin-right: 20px; /* Space for prediction */
+            width: 640px; /* Fixed width for video */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #444; /* Dark background for result */
+            color: #f0f4f8; /* Text color */
+            border: 2px solid #00aaff; /* Add border */
+            white-space: nowrap; /* Prevent text wrapping */
+            align-self: center; /* Center alignment */
+        }
+
+        .footer {
+            position: absolute; /* Absolute positioning */
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hand Gesture Recognition</h1>
+    <button class="toggle-button" id="toggleMode" aria-label="Switch to Light Mode">Switch to Light Mode</button>
+    <div class="container">
+        <video id="video" autoplay></video>
+        <h2 id="result">Predicted Gesture: Waiting for Input...</h2>
+    </div>
+    <canvas id="canvas" width="300" height="300" style="display: none;"></canvas>
+    <div class="footer">Made with ❤️ by JM</div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const resultText = document.getElementById('result');
+        const toggleButton = document.getElementById('toggleMode');
+        let isDarkMode = true; // Default is dark mode
+
+        // Access the webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing webcam: ", err);
+            });
+
+        // Function to capture image and send to server
+        function captureAndPredict() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob);
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    resultText.innerText = `Predicted Gesture: ${data.gesture}`;
+                })
+                .catch(error => {
+                    resultText.innerText = "Error predicting gesture. Please try again.";
+                    console.error("Error:", error);
+                });
+            });
+        }
+
+        // Toggle between light and dark modes
+        toggleButton.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            toggleButton.innerText = isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode";
+
+            // Change styles based on the current mode
+            if (isDarkMode) {
+                document.body.style.backgroundColor = '#1a1a1a';
+                document.body.style.color = '#f0f4f8';
+                resultText.style.backgroundColor = '#444';
+                resultText.style.color = '#f0f4f8';
+            } else {
+                document.body.style.backgroundColor = '#f0f4f8';
+                document.body.style.color = '#333';
+                resultText.style.backgroundColor = '#ffffff'; // Light background
+                resultText.style.color = '#333'; // Dark text
+            }
+        });
+
+        // Capture and predict every second (1000 ms)
+        setInterval(captureAndPredict, 1000);
+    </script>
+</body>
+</html>
